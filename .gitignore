@@ -1,8 +1,13 @@
-reviewer
-submission_instructions.*
-build
-solution
-solution_data
-src/particle_filter_sol.cpp
-src/solutions
-particle_filter.cpp
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+PARTICLE_FILTER.xcodeproj/
+cmake_install.cmake
+Debug/
+UnscentedKF.build/
+
+# silly macOS
+.DS_Store
+
+# build files
+build/
