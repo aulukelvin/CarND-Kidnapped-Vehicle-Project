@@ -5,7 +5,9 @@ PARTICLE_FILTER.xcodeproj/
 cmake_install.cmake
 Debug/
 UnscentedKF.build/
-
+nbproject/
+Makefile
+particle_filter
 # silly macOS
 .DS_Store
 
