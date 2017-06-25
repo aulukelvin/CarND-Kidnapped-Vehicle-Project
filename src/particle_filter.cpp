@@ -15,6 +15,7 @@
 #include <string>
 #include <iterator>
 
+#include "helper_functions.h"
 #include "particle_filter.h"
 
 using namespace std;
@@ -36,9 +37,12 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         Particle ptc;
         ptc.x = x + distributionX(generator);
         ptc.y = y + distributionY(generator);
-        ptc.theta = theta + distributionTheta(generator);
+        ptc.theta = Normalize(theta + distributionTheta(generator));
         particles[i] = ptc;
     }
+    
+    cout<<"init: measure: "<<x<< " - "<< y<< " - "<< theta<< endl;
+    cout<<"init: result "<<particles[0].x<< " - "<< particles[0].y<< " - "<< particles[0].theta<< endl;
     is_initialized = true;
     cout << "initialization done" << endl;
 
@@ -51,6 +55,18 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     std::normal_distribution<double> distributionY(0, std_pos[1]);
     std::normal_distribution<double> distributionTheta(0, std_pos[2]);
 
+    yaw_rate = Normalize(yaw_rate);
+    cout<<"predict: prior "<<particles[0].x<< " - "<< particles[0].y<< " - "<< particles[0].theta<< " - "<<velocity<<" - "<<yaw_rate<<endl;    
+    for (int i = 0; i < num_particles; i++) {
+        Particle ptc = particles[i];
+        
+        ptc.x = ptc.x + velocity * delta_t * cos(ptc.theta) + distributionX(generator);
+        ptc.y = ptc.y + velocity * delta_t * sin(ptc.theta) + distributionY(generator);
+        ptc.theta = Normalize(ptc.theta + yaw_rate * delta_t + distributionTheta(generator));
+        
+        particles[i] = ptc;
+    }
+    cout<<"predict: posterior "<<particles[0].x<< " - "<< particles[0].y<< " - "<< particles[0].theta<< endl;
 
 }
 

@@ -236,4 +236,9 @@ inline bool read_landmark_data(std::string filename, std::vector<LandmarkObs>& o
 	return true;
 }
 
+inline  double Normalize(double angle) {
+  while (angle> M_PI) angle -= 2.*M_PI;
+  while (angle<-M_PI) angle += 2.*M_PI;
+  return angle;
+}
 #endif /* HELPER_FUNCTIONS_H_ */
