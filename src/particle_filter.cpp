@@ -40,9 +40,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         ptc.theta = Normalize(theta + distributionTheta(generator));
         particles[i] = ptc;
     }
-    
-    cout<<"init: measure: "<<x<< " - "<< y<< " - "<< theta<< endl;
-    cout<<"init: result "<<particles[0].x<< " - "<< particles[0].y<< " - "<< particles[0].theta<< endl;
+
+    cout << "init: measure: " << x << " - " << y << " - " << theta << endl;
+    cout << "init: result " << particles[0].x << " - " << particles[0].y << " - " << particles[0].theta << endl;
     is_initialized = true;
     cout << "initialization done" << endl;
 
@@ -56,17 +56,17 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     std::normal_distribution<double> distributionTheta(0, std_pos[2]);
 
     yaw_rate = Normalize(yaw_rate);
-    cout<<"predict: prior "<<particles[0].x<< " - "<< particles[0].y<< " - "<< particles[0].theta<< " - "<<velocity<<" - "<<yaw_rate<<endl;    
+    cout << "predict: prior " << particles[0].x << " - " << particles[0].y << " - " << particles[0].theta << " - " << velocity << " - " << yaw_rate << endl;
     for (int i = 0; i < num_particles; i++) {
         Particle ptc = particles[i];
-        
+
         ptc.x = ptc.x + velocity * delta_t * cos(ptc.theta) + distributionX(generator);
         ptc.y = ptc.y + velocity * delta_t * sin(ptc.theta) + distributionY(generator);
         ptc.theta = Normalize(ptc.theta + yaw_rate * delta_t + distributionTheta(generator));
-        
+
         particles[i] = ptc;
     }
-    cout<<"predict: posterior "<<particles[0].x<< " - "<< particles[0].y<< " - "<< particles[0].theta<< endl;
+    cout << "predict: posterior " << particles[0].x << " - " << particles[0].y << " - " << particles[0].theta << endl;
 
 }
 
@@ -75,24 +75,24 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
     //   observed measurement to this particular landmark.
     double min_dist;
     int idx;
-        
+
     double dist_tmp;
-    for (int i=0; i< predicted.size(); i++) {
+    for (int i = 0; i < predicted.size(); i++) {
         min_dist = 99999.0;
         idx = -1;
-        
+
         LandmarkObs pred_L = predicted[i];
-        
-        for (int j=0; j< observations.size(); j++) {
+
+        for (int j = 0; j < observations.size(); j++) {
             LandmarkObs obs_L = observations[j];
             dist_tmp = dist(pred_L.x, pred_L.y, obs_L.x, obs_L.y);
             if (dist_tmp < min_dist) {
-                min_dist= dist_tmp;
+                min_dist = dist_tmp;
                 idx = obs_L.id;
             }
         }
         pred_L.id = idx;
-        
+
         predicted[i] = pred_L;
     }
 
@@ -100,7 +100,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         std::vector<LandmarkObs> observations, Map map_landmarks) {
-    // TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
+    // Update the weights of each particle using a mult-variate Gaussian distribution. You can read
     //   more about this distribution here: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
     // NOTE: The observations are given in the VEHICLE'S coordinate system. Your particles are located
     //   according to the MAP'S coordinate system. You will need to transform between the two systems.
@@ -110,6 +110,44 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //   and the following is a good resource for the actual equation to implement (look at equation 
     //   3.33
     //   http://planning.cs.uiuc.edu/node99.html
+
+    double denominator = (2 * M_PI * std_landmark[0] * std_landmark[1]);
+
+    for (int i = 0; i < num_particles; i++) {
+        Particle ptc = particles[i];
+        LandmarkObs tmp;
+        double x = ptc.x;
+        double y = ptc.y;
+        double theta = ptc.theta;
+        double weight = 1.0;
+
+        // transformation
+        vector<LandmarkObs> predictions = std::vector<LandmarkObs> (observations.size());
+        for (int j = 0; j < observations.size(); j++) {
+            LandmarkObs obs = observations[j];
+            tmp = LandmarkObs();
+
+            tmp.x = x * cos(theta) - y * sin(theta) + obs.x;
+            tmp.y = x * sin(theta) + y * cos(theta) + obs.y;
+
+            predictions[j] = tmp;
+        }
+
+        // associate
+        dataAssociation(predictions, observations);
+
+        // calculate weight
+        for (int j = 0; j < predictions.size(); j++) {
+            LandmarkObs pred = predictions[j];
+            weight *= exp(-(pow(pred.x - map_landmarks.landmark_list[pred.id].x_f, 2) / (2 * std_landmark[0] * std_landmark[0])
+                    + pow(pred.y - map_landmarks.landmark_list[pred.id].y_f, 2) / (2 * std_landmark[1] * std_landmark[1])))
+                    / denominator;
+        }
+        ptc.weight = weight;
+        particles[i] = ptc;
+    }
+
+    cout << "weighttt: " << particles[0].weight << endl;
 }
 
 void ParticleFilter::resample() {
