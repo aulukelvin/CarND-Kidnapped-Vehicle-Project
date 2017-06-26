@@ -59,13 +59,13 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     for (int i = 0; i < num_particles; i++) {
         Particle ptc = particles[i];
         if (fabs(yaw_rate) < 0.00001) {
-          ptc.x += velocity * delta_t * cos(ptc.theta) + distributionX(generator);
-          ptc.y += velocity * delta_t * sin(ptc.theta) + distributionY(generator);
-          ptc.theta = Normalize(ptc.theta + distributionTheta(generator));
+            ptc.x += velocity * delta_t * cos(ptc.theta) + distributionX(generator);
+            ptc.y += velocity * delta_t * sin(ptc.theta) + distributionY(generator);
+            ptc.theta = Normalize(ptc.theta + distributionTheta(generator));
         } else {
-          ptc.x += velocity / yaw_rate * (sin(ptc.theta + yaw_rate*delta_t) - sin(ptc.theta)) + distributionX(generator);
-          ptc.y += velocity / yaw_rate * (cos(ptc.theta) - cos(ptc.theta + yaw_rate*delta_t)) + distributionY(generator);
-          ptc.theta = Normalize(ptc.theta + yaw_rate * delta_t + distributionTheta(generator));
+            ptc.x += velocity / yaw_rate * (sin(ptc.theta + yaw_rate * delta_t) - sin(ptc.theta)) + distributionX(generator);
+            ptc.y += velocity / yaw_rate * (cos(ptc.theta) - cos(ptc.theta + yaw_rate * delta_t)) + distributionY(generator);
+            ptc.theta = Normalize(ptc.theta + yaw_rate * delta_t + distributionTheta(generator));
         }
         particles[i] = ptc;
     }
@@ -157,38 +157,38 @@ void ParticleFilter::resample() {
     // TODO: Resample particles with replacement with probability proportional to their weight. 
     // NOTE: You may find std::discrete_distribution helpful here.
     //   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
-  
-  vector<Particle> new_particles;
-  
-  // get all of the current weights
-  vector<double> weights;
-  for (int i = 0; i < num_particles; i++) {
-    weights.push_back(particles[i].weight);
-  }
-  
-  // generate random starting index for resampling wheel
-  uniform_int_distribution<int> uniintdist(0, num_particles-1);
-  auto index = uniintdist(generator);
-  
-  // get max weight
-  double max_weight = *max_element(weights.begin(), weights.end());
-  
-  // uniform random distribution [0.0, max_weight)
-  uniform_real_distribution<double> unirealdist(0.0, max_weight);
-  
-  double beta = 0.0;
-  
-  // spin the resample wheel!
-  for (int i = 0; i < num_particles; i++) {
-    beta += unirealdist(generator) * 2.0;
-    while (beta > weights[index]) {
-      beta -= weights[index];
-      index = (index + 1) % num_particles;
+
+    vector<Particle> new_particles;
+
+    // get all of the current weights
+    vector<double> weights;
+    for (int i = 0; i < num_particles; i++) {
+        weights.push_back(particles[i].weight);
     }
-    new_particles.push_back(particles[index]);
-  }
-  
-  particles = new_particles;
+
+    // generate random starting index for resampling wheel
+    uniform_int_distribution<int> uniintdist(0, num_particles - 1);
+    auto index = uniintdist(generator);
+
+    // get max weight
+    double max_weight = *max_element(weights.begin(), weights.end());
+
+    // uniform random distribution [0.0, max_weight)
+    uniform_real_distribution<double> unirealdist(0.0, max_weight);
+
+    double beta = 0.0;
+
+    // spin the resample wheel!
+    for (int i = 0; i < num_particles; i++) {
+        beta += unirealdist(generator) * 2.0;
+        while (beta > weights[index]) {
+            beta -= weights[index];
+            index = (index + 1) % num_particles;
+        }
+        new_particles.push_back(particles[index]);
+    }
+
+    particles = new_particles;
 
 }
 
