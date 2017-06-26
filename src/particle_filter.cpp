@@ -26,7 +26,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     //   x, y, theta and their uncertainties from GPS) and all weights to 1. 
     // Add random Gaussian noise to each particle.
     // NOTE: Consult particle_filter.h for more information about this method (and others in this file).
-    num_particles = 400;
+    num_particles = 36;
 
     std::normal_distribution<double> distributionX(0, std[0]);
     std::normal_distribution<double> distributionY(0, std[1]);
@@ -136,14 +136,36 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
             predictions[j] = tmp;
         }
 
+        vector<LandmarkObs> landmarks;
+        for (int j = 0; j < map_landmarks.landmark_list.size(); j++) {
+            Map::single_landmark_s lm = map_landmarks.landmark_list[j];
+            if (fabs(lm.x_f - x) <= sensor_range && fabs(lm.y_f - y) <= sensor_range) {
+                
+                //transform from single_landmark_s to LandmarkObs to compatible with the contract.
+                tmp = LandmarkObs();
+                tmp.id = lm.id_i;
+                tmp.x = lm.x_f;
+                tmp.y = lm.y_f;
+                // add landmark to vector
+                landmarks.push_back(tmp);
+            }
+        }
+
         // associate
-        dataAssociation(predictions, observations);
+        dataAssociation(predictions, landmarks);
 
         // calculate weight
         for (int j = 0; j < predictions.size(); j++) {
-            LandmarkObs pred = predictions[j];
-            weight *= exp(-(pow(pred.x - map_landmarks.landmark_list[pred.id].x_f, 2) / (2 * std_landmark[0] * std_landmark[0])
-                    + pow(pred.y - map_landmarks.landmark_list[pred.id].y_f, 2) / (2 * std_landmark[1] * std_landmark[1])))
+            LandmarkObs p = predictions[j];
+            LandmarkObs l;
+            // get the x,y coordinates of the prediction associated with the current observation
+            for (int k = 0; k < landmarks.size(); k++) {
+                if (landmarks[k].id == p.id) {
+                    l = landmarks[k];
+                }
+            }
+
+            weight *= exp(-(pow(p.x - l.x, 2) / (2 * std_landmark[0] * std_landmark[0]) + pow(p.y - l.y, 2) / (2 * std_landmark[1] * std_landmark[1])))
                     / denominator;
         }
         ptc.weight = weight;
