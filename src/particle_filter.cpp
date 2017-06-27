@@ -52,7 +52,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     std::normal_distribution<double> distributionTheta(0, std_pos[2]);
 
     yaw_rate = Normalize(yaw_rate);
-    cout << "predict: prior " << particles[0].x << " - " << particles[0].y << " - " << particles[0].theta << " - " << velocity << " - " << yaw_rate << endl;
+
     for (int i = 0; i < num_particles; i++) {
         Particle ptc = particles[i];
         if (fabs(yaw_rate) < 0.00001) {
@@ -113,7 +113,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
     double s_x = std_landmark[0];
     double s_y = std_landmark[1];
-  
+
     double denominator = (2 * M_PI * s_x * s_y);
 
     for (int i = 0; i < num_particles; i++) {
@@ -123,9 +123,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         double y = ptc.y;
         double theta = ptc.theta;
         double weight = 1.0;
-      
+
         // transformation
-        vector<LandmarkObs> predictions ;
+        vector<LandmarkObs> predictions;
         for (int j = 0; j < observations.size(); j++) {
             LandmarkObs obs = observations[j];
             tmp = LandmarkObs();
@@ -133,7 +133,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
             tmp.x = obs.x * cos(theta) - obs.y * sin(theta) + x;
             tmp.y = obs.x * sin(theta) + obs.y * cos(theta) + y;
             tmp.id = -1;
-          predictions.push_back(tmp);
+            predictions.push_back(tmp);
         }
 
         vector<LandmarkObs> landmarks;
@@ -165,14 +165,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                 }
             }
 
-            weight *= exp(-(pow(p.x - l.x, 2) / (2 * s_x * s_x) + pow(p.y - l.y, 2) / (2 * s_y * s_y)))
-                    / denominator;
+            weight *= exp(-(pow(p.x - l.x, 2) / (2 * s_x * s_x) + pow(p.y - l.y, 2) / (2 * s_y * s_y))) / denominator;
         }
         ptc.weight = weight;
         particles[i] = ptc;
     }
-
-    cout << "weighttt: " << particles[0].weight << endl;
 }
 
 void ParticleFilter::resample() {
