@@ -28,18 +28,15 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     // NOTE: Consult particle_filter.h for more information about this method (and others in this file).
     num_particles = 81;
 
-    std::normal_distribution<double> distributionX(0, std[0]);
-    std::normal_distribution<double> distributionY(0, std[1]);
-    std::normal_distribution<double> distributionTheta(0, std[2]);
+    normal_distribution<double> distributionX(0, std[0]);
+    normal_distribution<double> distributionY(0, std[1]);
+    normal_distribution<double> distributionTheta(0, std[2]);
 
     for (int i = 0; i < num_particles; i++) {
         Particle ptc;
         ptc.x = x + distributionX(generator);
         ptc.y = y + distributionY(generator);
         ptc.theta = theta + distributionTheta(generator);
-
-        while (ptc.theta > M_PI) ptc.theta -= 2. * M_PI;
-        while (ptc.theta<-M_PI) ptc.theta += 2. * M_PI;
 
         particles.push_back(ptc);
     }
@@ -51,12 +48,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
     // Add measurements to each particle and add random Gaussian noise.
-    std::normal_distribution<double> distributionX(0, std_pos[0]);
-    std::normal_distribution<double> distributionY(0, std_pos[1]);
-    std::normal_distribution<double> distributionTheta(0, std_pos[2]);
-
-    while (yaw_rate > M_PI) yaw_rate -= 2. * M_PI;
-    while (yaw_rate<-M_PI) yaw_rate += 2. * M_PI;
+    normal_distribution<double> distributionX(0, std_pos[0]);
+    normal_distribution<double> distributionY(0, std_pos[1]);
+    normal_distribution<double> distributionTheta(0, std_pos[2]);
 
     for (int i = 0; i < num_particles; i++) {
         Particle ptc = particles[i];
@@ -65,23 +59,14 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
             ptc.y += velocity * delta_t * sin(ptc.theta) + distributionY(generator);
             ptc.theta = ptc.theta + distributionTheta(generator);
 
-            while (ptc.theta > M_PI) ptc.theta -= 2. * M_PI;
-            while (ptc.theta<-M_PI) ptc.theta += 2. * M_PI;
-
         } else {
             ptc.x += velocity / yaw_rate * (sin(ptc.theta + yaw_rate * delta_t) - sin(ptc.theta)) + distributionX(generator);
             ptc.y += velocity / yaw_rate * (cos(ptc.theta) - cos(ptc.theta + yaw_rate * delta_t)) + distributionY(generator);
             ptc.theta = ptc.theta + yaw_rate * delta_t + distributionTheta(generator);
 
-
-            while (ptc.theta > M_PI) ptc.theta -= 2. * M_PI;
-            while (ptc.theta<-M_PI) ptc.theta += 2. * M_PI;
-
         }
         particles[i] = ptc;
     }
-    cout << "predict: posterior " << particles[0].x << " - " << particles[0].y << " - " << particles[0].theta << endl;
-
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
