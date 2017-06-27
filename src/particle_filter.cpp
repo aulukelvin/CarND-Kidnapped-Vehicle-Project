@@ -125,15 +125,15 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         double weight = 1.0;
       
         // transformation
-        vector<LandmarkObs> predictions = std::vector<LandmarkObs> (observations.size());
+        vector<LandmarkObs> predictions ;
         for (int j = 0; j < observations.size(); j++) {
             LandmarkObs obs = observations[j];
             tmp = LandmarkObs();
 
-            tmp.x = x * cos(theta) - y * sin(theta) + obs.x;
-            tmp.y = x * sin(theta) + y * cos(theta) + obs.y;
+            tmp.x = obs.x * cos(theta) - obs.y * sin(theta) + x;
+            tmp.y = obs.x * sin(theta) + obs.y * cos(theta) + y;
             tmp.id = -1;
-            predictions[j] = tmp;
+          predictions.push_back(tmp);
         }
 
         vector<LandmarkObs> landmarks;
