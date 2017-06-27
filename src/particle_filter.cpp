@@ -139,7 +139,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         vector<LandmarkObs> landmarks;
         for (int j = 0; j < map_landmarks.landmark_list.size(); j++) {
             Map::single_landmark_s lm = map_landmarks.landmark_list[j];
-            if (fabs(lm.x_f - x) <= sensor_range && fabs(lm.y_f - y) <= sensor_range) {
+            if (pow(lm.x_f - x, 2) + pow(lm.y_f - y, 2) <= pow(sensor_range, 2)) {
 
                 //transform from single_landmark_s to LandmarkObs to compatible with the contract.
                 tmp = LandmarkObs();
