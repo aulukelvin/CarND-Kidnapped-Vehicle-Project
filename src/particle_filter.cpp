@@ -36,7 +36,11 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         Particle ptc;
         ptc.x = x + distributionX(generator);
         ptc.y = y + distributionY(generator);
-        ptc.theta = Normalize(theta + distributionTheta(generator));
+        ptc.theta = theta + distributionTheta(generator);
+
+        while (ptc.theta > M_PI) ptc.theta -= 2. * M_PI;
+        while (ptc.theta<-M_PI) ptc.theta += 2. * M_PI;
+
         particles.push_back(ptc);
     }
 
@@ -51,18 +55,28 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     std::normal_distribution<double> distributionY(0, std_pos[1]);
     std::normal_distribution<double> distributionTheta(0, std_pos[2]);
 
-    yaw_rate = Normalize(yaw_rate);
+    while (yaw_rate > M_PI) yaw_rate -= 2. * M_PI;
+    while (yaw_rate<-M_PI) yaw_rate += 2. * M_PI;
 
     for (int i = 0; i < num_particles; i++) {
         Particle ptc = particles[i];
         if (fabs(yaw_rate) < 0.00001) {
             ptc.x += velocity * delta_t * cos(ptc.theta) + distributionX(generator);
             ptc.y += velocity * delta_t * sin(ptc.theta) + distributionY(generator);
-            ptc.theta = Normalize(ptc.theta + distributionTheta(generator));
+            ptc.theta = ptc.theta + distributionTheta(generator);
+
+            while (ptc.theta > M_PI) ptc.theta -= 2. * M_PI;
+            while (ptc.theta<-M_PI) ptc.theta += 2. * M_PI;
+
         } else {
             ptc.x += velocity / yaw_rate * (sin(ptc.theta + yaw_rate * delta_t) - sin(ptc.theta)) + distributionX(generator);
             ptc.y += velocity / yaw_rate * (cos(ptc.theta) - cos(ptc.theta + yaw_rate * delta_t)) + distributionY(generator);
-            ptc.theta = Normalize(ptc.theta + yaw_rate * delta_t + distributionTheta(generator));
+            ptc.theta = ptc.theta + yaw_rate * delta_t + distributionTheta(generator);
+
+
+            while (ptc.theta > M_PI) ptc.theta -= 2. * M_PI;
+            while (ptc.theta<-M_PI) ptc.theta += 2. * M_PI;
+
         }
         particles[i] = ptc;
     }
